@@ -12,6 +12,49 @@
 / {
 	model = "Luckfox Pico Plus";
 	compatible = "rockchip,rv1103g-38x38-ipc-v10", "rockchip,rv1103";
+
+	vcc_1v8: vcc-1v8 {
+        compatible = "regulator-fixed";
+        regulator-name = "vcc_1v8";
+        regulator-always-on;
+        regulator-boot-on;
+        regulator-min-microvolt = <1800000>;
+        regulator-max-microvolt = <1800000>;
+    };
+
+    vcc_3v3: vcc-3v3 {
+        compatible = "regulator-fixed";
+        regulator-name = "vcc_3v3";
+        regulator-always-on;
+        regulator-boot-on;
+        regulator-min-microvolt = <3300000>;
+        regulator-max-microvolt = <3300000>;
+	};
+	sdio_pwrseq: sdio-pwrseq {
+		compatible = "mmc-pwrseq-simple";
+		pinctrl-names = "default";
+		reset-gpios = <&gpio1 RK_PA2 GPIO_ACTIVE_LOW>;
+	};
+	// sdio_pwrseq: sdio-pwrseq {
+	// 	compatible = "mmc-pwrseq-simple";
+	// 	pinctrl-names = "default";
+	// 	// pinctrl-0 = <&wifi_enable_h>;
+	// 	/*
+	// 	 * On the module itself this is one of these (depending
+	// 	 * on the actual card populated):
+	// 	 * - SDIO_RESET_L_WL_REG_ON
+	// 	 * - PDN (power down when low)
+	// 	 */
+	// 	post-power-on-delay-ms = <200>;
+	// 	reset-gpios = <&gpio3 RK_PC5 GPIO_ACTIVE_HIGH>; # 这个引脚暂时没有用到
+	// };
+
+	// sdio_pwrseq: sdio-pwrseq {
+	// 	compatible = "mmc-pwrseq-simple";
+	// 	pinctrl-names = "default";
+	// 	post-power-on-delay-ms = <200>;
+
+	// 	reset-gpios = <&gpio1 RK_PA2 GPIO_ACTIVE_HIGH>;
 };
 
 /**********SFC**********/
@@ -26,19 +69,48 @@
 	};
 };
 
-/**********SDMMC**********/
+/**********SDIO-WIFI**********/
+// &sdmmc {
+//     max-frequency = <20000000>; 
+//     bus-width = <4>;           
+//     cap-sd-highspeed;          
+//     cap-sdio-irq;              
+//     keep-power-in-suspend;      
+//     non-removable;              
+//     sd-uhs-sdr50;         
+//     no-1-8-v;
+//     supports-sdio;        
+//     pinctrl-names = "default";
+//     pinctrl-0 = <&sdmmc0_clk &sdmmc0_cmd &sdmmc0_det &sdmmc0_bus4>; 
+//     status = "okay";
+// };
 &sdmmc {
-	max-frequency = <50000000>;
-	no-sdio;
-	no-mmc;
-	bus-width = <4>;
-	cap-mmc-highspeed;
-	cap-sd-highspeed;
-	disable-wp;
-	pinctrl-names = "default";
-	pinctrl-0 = <&sdmmc0_clk &sdmmc0_cmd &sdmmc0_det &sdmmc0_bus4>;
-	status = "okay";
+        max-frequency = <50000000>;
+        bus-width = <4>;
+        cap-sd-highspeed;
+        cap-sdio-irq;
+        keep-power-in-suspend;
+        non-removable;
+        rockchip,default-sample-phase = <90>;
+        // no-sd;
+        // no-mmc;
+        supports-sdio;
+        mmc-pwrseq = <&sdio_pwrseq>;
+        pinctrl-names = "default";
+        pinctrl-0 = <&sdmmc0_clk &sdmmc0_cmd &sdmmc0_bus4 &sdmmc0_det>;
+        status = "okay";
 };
+
+&pinctrl{
+	sdmmc0{
+		sdmmc0_det: sdmmc0-det {
+			rockchip,pins =
+				/* sdmmc0_det */
+				<3 RK_PA1 1 &pcfg_pull_down>;
+		};
+  };
+};
+
 
 /**********ETH**********/
 &gmac {
@@ -89,6 +161,3 @@
 &pwm1 {
 	status = "disabled";
 };
-
-
-

@@ -576,7 +576,7 @@ EOF
 	echo "========================================="
 
 	build_meta --export # export meta header files
-	#build_meta --export --media_dir $RK_PROJECT_PATH_MEDIA # for rtl8723bs
+	build_meta --export --media_dir $RK_PROJECT_PATH_MEDIA # for rtl8723bs
 	test -d ${SDK_APP_DIR} && make -C ${SDK_APP_DIR}
 
 	finish_build
@@ -598,7 +598,15 @@ function build_meta() {
 	msg_info "============Start building meta============"
 	if [ -n "$RK_META_SIZE" ]; then
 		if [ -d "${RK_PROJECT_TOP_DIR}/make_meta" ]; then
-			${RK_PROJECT_TOP_DIR}/make_meta/build_meta.sh $@
+			__meta_param="$RK_META_PARAM $RK_CAMERA_PARAM --meta_part_size=$RK_META_SIZE"
+			${RK_PROJECT_TOP_DIR}/make_meta/build_meta.sh $@ \
+                		--cam_iqfile ${RK_CAMERA_SENSOR_IQFILES}                            \
+                		--meta_param $__meta_param                   \
+                		--output $RK_PROJECT_OUTPUT_IMAGE            \
+                		--rootfs_dir $RK_PROJECT_PACKAGE_ROOTFS_DIR  \
+                		--media_dir $RK_PROJECT_PATH_MEDIA           \
+                		--pc_tools_dir $RK_PROJECT_PATH_PC_TOOLS     \
+                		--tiny_meta $RK_TINY_META			
 		fi
 	fi
 	finish_build
@@ -1220,13 +1228,15 @@ EOF
 }
 
 function __PACKAGE_ROOTFS() {
-	local rootfs_tarball rootfs_out_dir
+	local rootfs_tarball rootfs_out_dir _target_dir _install_dir
 	rootfs_tarball="$RK_PROJECT_PATH_SYSDRV/rootfs_${RK_LIBC_TPYE}_${RK_CHIP}.tar"
 
-	if [ ! -f $rootfs_tarball ]; then
-		msg_error "Build rootfs is not yet complete, packaging cannot proceed!"
-		exit 0
-	fi
+    	if [ -f $rootfs_tarball ]; then
+        	tar xf $rootfs_tarball -C $RK_PROJECT_OUTPUT
+    	else
+        	msg_error "Not found rootfs tarball: $rootfs_tarball"
+        	exit 1
+    	fi
 
 	build_get_sdk_version
 

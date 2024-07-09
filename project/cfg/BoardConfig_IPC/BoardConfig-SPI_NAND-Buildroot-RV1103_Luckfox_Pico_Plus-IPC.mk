@@ -102,3 +102,7 @@ export RK_BUILD_APP_TO_OEM_PARTITION=y
 
 # enable rockchip test
 export RK_ENABLE_ROCKCHIP_TEST=y
+
+# enable WIFI test
+export RK_ENABLE_WIFI=y
+
