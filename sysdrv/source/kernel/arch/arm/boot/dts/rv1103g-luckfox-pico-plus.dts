@@ -33,28 +33,25 @@
 	sdio_pwrseq: sdio-pwrseq {
 		compatible = "mmc-pwrseq-simple";
 		pinctrl-names = "default";
-		reset-gpios = <&gpio1 RK_PA2 GPIO_ACTIVE_LOW>;
+		reset-gpios = <&gpio1 RK_PA2 GPIO_ACTIVE_LOW>;//随便给的
 	};
-	// sdio_pwrseq: sdio-pwrseq {
-	// 	compatible = "mmc-pwrseq-simple";
-	// 	pinctrl-names = "default";
-	// 	// pinctrl-0 = <&wifi_enable_h>;
-	// 	/*
-	// 	 * On the module itself this is one of these (depending
-	// 	 * on the actual card populated):
-	// 	 * - SDIO_RESET_L_WL_REG_ON
-	// 	 * - PDN (power down when low)
-	// 	 */
-	// 	post-power-on-delay-ms = <200>;
-	// 	reset-gpios = <&gpio3 RK_PC5 GPIO_ACTIVE_HIGH>; # 这个引脚暂时没有用到
-	// };
 
-	// sdio_pwrseq: sdio-pwrseq {
-	// 	compatible = "mmc-pwrseq-simple";
-	// 	pinctrl-names = "default";
-	// 	post-power-on-delay-ms = <200>;
-
-	// 	reset-gpios = <&gpio1 RK_PA2 GPIO_ACTIVE_HIGH>;
+	wireless_bluetooth: wireless-bluetooth {
+		compatible = "bluetooth-platdata";
+		uart_rts_gpios = <&gpio1 RK_PC6 GPIO_ACTIVE_LOW>;//对应RTS
+		pinctrl-names = "default","rts_gpio";
+		pinctrl-0 = <&uart4m1_rtsn>;
+		pinctrl-1 = <&uart4_rts_gpio>; /* 定义gpio1 RK_PD0 为蓝牙引脚 */
+		
+		//keep_bt_power_on;
+		/* BT,power_gpio = <&gpio* *** GPIO_ACTIVE_HIGH>; *///这些引脚都没有
+		/*BT,power_gpio = <&gpio0 RK_PA2 GPIO_ACTIVE_LOW>;*/
+		/*BT,reset_gpio = <&gpio0 RK_PA2 GPIO_ACTIVE_HIGH>;*///STM32 BT_EN
+		/*BT,wake_gpio = <&gpio1 RK_PA4 GPIO_ACTIVE_HIGH>;*/
+		/*BT,wake_host_irq = <&gpio1 RK_PA4 GPIO_ACTIVE_HIGH>;*/
+		
+		status = "okay";
+	};
 };
 
 /**********SFC**********/
@@ -70,20 +67,6 @@
 };
 
 /**********SDIO-WIFI**********/
-// &sdmmc {
-//     max-frequency = <20000000>; 
-//     bus-width = <4>;           
-//     cap-sd-highspeed;          
-//     cap-sdio-irq;              
-//     keep-power-in-suspend;      
-//     non-removable;              
-//     sd-uhs-sdr50;         
-//     no-1-8-v;
-//     supports-sdio;        
-//     pinctrl-names = "default";
-//     pinctrl-0 = <&sdmmc0_clk &sdmmc0_cmd &sdmmc0_det &sdmmc0_bus4>; 
-//     status = "okay";
-// };
 &sdmmc {
         max-frequency = <50000000>;
         bus-width = <4>;
@@ -109,6 +92,11 @@
 				<3 RK_PA1 1 &pcfg_pull_down>;
 		};
   };
+  wireless-bluetooth {
+    uart4_rts_gpio: uart4_rts_gpio {
+        rockchip,pins = <1 RK_PC6 RK_FUNC_GPIO &pcfg_pull_none>;
+    };
+};
 };
 
 
@@ -153,7 +141,9 @@
 
 /* UART4_M1 */
 &uart4 {
-	status = "disabled";
+    status = "okay";
+    pinctrl-names = "default";
+    pinctrl-0 = <&uart4m1_xfer &uart4m1_ctsn>;
 };
 
 /**********PWM**********/

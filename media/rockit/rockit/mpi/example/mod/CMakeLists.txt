@@ -86,6 +86,10 @@ set(RK_MPI_TEST_AVIO_SRC
 set(RK_MPI_TEST_IVS_SRC
     test_mpi_ivs.cpp
 )
+
+set(TEST_AO_SRC
+    testao.cpp
+)
 #--------------------------
 # rk_mpi_ao_test
 #--------------------------
@@ -213,4 +217,14 @@ install(TARGETS rk_mpi_af_test RUNTIME DESTINATION "bin")
 add_executable(rk_mpi_amix_test ${RK_MPI_TEST_AMIX_SRC} ${RK_MPI_TEST_COMMON_SRC})
 target_link_libraries(rk_mpi_amix_test ${ROCKIT_DEP_COMMON_LIBS})
 install(TARGETS rk_mpi_amix_test RUNTIME DESTINATION "bin")
+
+#--------------------------
+# rk_mpi_amix_test
+#--------------------------
+add_executable(testao ${TEST_AO_SRC} ${RK_MPI_TEST_COMMON_SRC})
+target_link_libraries(testao ${ROCKIT_DEP_COMMON_LIBS})
+install(TARGETS testao RUNTIME DESTINATION "bin")
+
+
+
 
