@@ -33,7 +33,7 @@
 	sdio_pwrseq: sdio-pwrseq {
 		compatible = "mmc-pwrseq-simple";
 		pinctrl-names = "default";
-		reset-gpios = <&gpio1 RK_PA2 GPIO_ACTIVE_LOW>;//随便给的
+		reset-gpios = <&gpio1 RK_PA2 GPIO_ACTIVE_HIGH>;//随便给的
 	};
 
 	wireless_bluetooth: wireless-bluetooth {
@@ -42,11 +42,11 @@
 		pinctrl-names = "default","rts_gpio";
 		pinctrl-0 = <&uart4m1_rtsn>;
 		pinctrl-1 = <&uart4_rts_gpio>; /* 定义gpio1 RK_PD0 为蓝牙引脚 */
-		
+		BT,power_gpio = <&gpio1 RK_PC0 GPIO_ACTIVE_LOW>;//STM32 BT_EN
 		//keep_bt_power_on;
 		/* BT,power_gpio = <&gpio* *** GPIO_ACTIVE_HIGH>; *///这些引脚都没有
 		/*BT,power_gpio = <&gpio0 RK_PA2 GPIO_ACTIVE_LOW>;*/
-		/*BT,reset_gpio = <&gpio0 RK_PA2 GPIO_ACTIVE_HIGH>;*///STM32 BT_EN
+		
 		/*BT,wake_gpio = <&gpio1 RK_PA4 GPIO_ACTIVE_HIGH>;*/
 		/*BT,wake_host_irq = <&gpio1 RK_PA4 GPIO_ACTIVE_HIGH>;*/
 		
@@ -113,12 +113,12 @@
 
 /**********SPI**********/
 /* SPI0_M0 */
-&spi0 {
-	status = "disabled";
-	spidev@0 {
-		spi-max-frequency = <50000000>;
-	};
-};
+// &spi0 {
+// 	status = "disabled";
+// 	spidev@0 {
+// 		spi-max-frequency = <50000000>;
+// 	};
+// };
 
 /**********I2C**********/
 /* I2C3_M1 */
