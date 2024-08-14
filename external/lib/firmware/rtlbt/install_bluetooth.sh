@@ -25,7 +25,7 @@ echo -e "\e[32m hci0 rfkill has stated !!!\e[0m"
 
 # 启动蓝牙
 output3=`hciconfig hci0 up` 
-hciconfig hci0 name "RFIDtest"
+hciconfig hci0 name "TEST"
 echo -e "\e[32m hci0 started !!!\e[0m"
 hciconfig hci0 piscan
 

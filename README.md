@@ -53,9 +53,11 @@ Which would you like? [0~1][default:0]: 0
 luckfox@luckfox:~$  ./build.sh
 ```
 
+## 二、添加buildroot软件包配置
+根目录中luckfox_pico_defconfig配置，在编译过一次之后可以直接将其替换/luckfox-pico/sysdrv/source/buildroot/buildroot-2023.02.6/configs中对应的文件
 
 
-## 二、WIFI使用
+## 三、WIFI使用
 
 - 编译
 
@@ -88,7 +90,7 @@ echo "./lib/firmware/rtlwifi/install_wifi.sh" >> /etc/init.d/rcS
 
 如果需要修改网络，可以直接将<SDK目录>/external/lib/firmware/rtlwifi/install_wifi.sh脚本中的SSID和PSK分别修改为网络的名称和密码。
 
-## 三、蓝牙使用
+## 四、蓝牙使用
 
 
 - 编译
