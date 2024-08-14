@@ -1,376 +1,154 @@
-![luckfox](https://github.com/LuckfoxTECH/luckfox-pico/assets/144299491/cec5c4a5-22b9-4a9a-abb1-704b11651e88)
-# Luckfox Pico SDK
-[中文版](./README_CN.md)
-* This SDK is modified based on the SDK provided by Rockchip
-* It provides a customized SDK specifically for Luckfox Pico series development boards 
-* Aimed at providing developers with a better programming experience
-## SDK Updatelog
-* Current version V1.3
-1. Added support for Luckfox-pico-Ultra and Luckfox-pico-Ultra-W
-2. Optimized the selection process for board support files
-3. Improved the download speed of buildroot by selecting the fastest mirror based on the download environment
-4. Enhanced buildroot package management operations; added the `buildrootconfig` option to the `build.sh` command to directly enter buildroot's menuconfig
-5. Improved the rootfs clean operation to retain Buildroot already downloaded packages
-6. Enhanced kernel configuration operations; added the `kernelconfig` option to the `build.sh` command to enter the kernel's menuconfig
-7. Added a `config` folder for quick configuration of device trees, kernel, and buildroot
-8. Optimized the system's root filesystem packaging process, allowing customization of root files in the `<Luckfox-pico SDK PATH>/output/out/rootfs_uclibc_rv1106` folder
-9. Modified the default device tree configuration, enabling pin and interface function configuration on the board system using the `luckfox-config` command
-10. Partial bug fixes
-## SDK Usage Instructions
-* recommended operating system : Ubuntu 22.04 
-### Installing Dependencies
+# RTL8723BS 蓝牙WIFI
+
+
+- [RTL8723BS 蓝牙WIFI](#rtl8723bs-蓝牙wifi)
+	- [一、开发环境配置](#一开发环境配置)
+		- [1.1开发环境](#11开发环境)
+		- [1.2 安装依赖环境](#12-安装依赖环境)
+		- [1.3 获取SDK](#13-获取sdk)
+		- [1.4 编译镜像](#14-编译镜像)
+	- [二、固件和驱动文件添加](#二固件和驱动文件添加)
+		- [2.1 添加固件](#21-添加固件)
+		- [2.2 添加驱动程序](#22-添加驱动程序)
+		- [2.3 rkwifibt文件夹加入编译](#23-rkwifibt文件夹加入编译)
+	- [三、WIFI配置及使用](#三wifi配置及使用)
+		- [3.1 修改内核](#31-修改内核)
+			- [3.1.1 配置cfg80211](#311-配置cfg80211)
+			- [3.1.2 rfkill](#312-rfkill)
+			- [3.1.3 驱动支持](#313-驱动支持)
+		- [3.2 buildroot软件包](#32-buildroot软件包)
+			- [3.2.1 wpa\_supplicant](#321-wpa_supplicant)
+			- [3.2.2 wireless tools](#322-wireless-tools)
+			- [3.2.3 iw](#323-iw)
+		- [3.3 配置dts](#33-配置dts)
+			- [3.3.1 添加节点](#331-添加节点)
+			- [3.3.2 追加节点属性](#332-追加节点属性)
+			- [3.3.3 sdmmc0检测引脚拉低](#333-sdmmc0检测引脚拉低)
+		- [3.4 修改build.sh脚本](#34-修改buildsh脚本)
+		- [3.5 WIFI支持](#35-wifi支持)
+		- [3.6 使用方法](#36-使用方法)
+			- [3.6.1 测试](#361-测试)
+			- [3.6.2 修改网络](#362-修改网络)
+	- [四、蓝牙的配置及使用](#四蓝牙的配置及使用)
+		- [4.1 修改内核](#41-修改内核)
+			- [4.1.1 蓝牙子系统](#411-蓝牙子系统)
+			- [4.1.2 用户层驱动支持](#412-用户层驱动支持)
+			- [4.1.3 HID驱动](#413-hid驱动)
+		- [4.2 buildroot软件包](#42-buildroot软件包)
+			- [4.2.1 Target options](#421-target-options)
+			- [4.2.2 设置外部工具链](#422-设置外部工具链)
+			- [4.2.3 bluez](#423-bluez)
+			- [4.2.4 dbus](#424-dbus)
+			- [4.2.5 expat](#425-expat)
+			- [4.2.6 添加bluez依赖，防止报错](#426-添加bluez依赖防止报错)
+		- [4.3 使用方法](#43-使用方法)
+
+## 一、官方开发环境配置
+下面是官方的开发环境SDK编译方法，如果使用本仓库即不必执行1.3，SDK已经下载
+### 1.1开发环境
+
+>- SDK version：V1.3或V1.4    
+>- SDK仓库地址：https://gitee.com/LuckfoxTECH/luckfox-pico.git
+>- RTL8723：一款WIFI和蓝牙集成的芯片
+
+### 1.2 安装依赖环境
+
 ```shell
+sudo apt update
+
 sudo apt-get install -y git ssh make gcc gcc-multilib g++-multilib module-assistant expect g++ gawk texinfo libssl-dev bison flex fakeroot cmake unzip gperf autoconf device-tree-compiler libncurses5-dev pkg-config bc python-is-python3 passwd openssl openssh-server openssh-client vim file cpio rsync
+
 ```
-### Get SDK
-```
-git clone https://github.com/LuckfoxTECH/luckfox-pico.git
-```
-### Environment Variables
-* The cross-compilation toolchain needs to be set Environment Variables
-```
-cd {SDK_PATH}/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/
-source env_install_toolchain.sh
-```
-### Get the SDK
-* GitHub
-    ```
-    git clone <https://github.com/LuckfoxTECH/luckfox-pico.git>
-    ```
-* Gitee
-    ```
-    git clone <https://gitee.com/LuckfoxTECH/luckfox-pico.git>
-    ```
-   * If you need to compile the Ubuntu system and use the Gitee source
-   * Please modify the corresponding board mk file LF_SUBMODULES_BY to gitee, for example
-        ```
-        LF_SUBMODULES_BY=gitee
-        ```
-### Instructions for build.sh
-* The build.sh script is used to automate the compilation process. 
-* Most of the compilation operations can be completed automatically through build.sh.
-#### Options for build.sh
+
+### 1.3 获取SDK
+
 ```shell
-Usage: build.sh [OPTIONS]
-Available options:
-lunch              -Select Board Configure
-env                -build env
-meta               -build meta (optional)
-uboot              -build uboot
-kernel             -build kernel
-rootfs             -build rootfs
-driver             -build kernel's drivers
-sysdrv             -build uboot, kernel, rootfs
-media              -build rockchip media libraries
-app                -build app
-recovery           -build recovery
-tool               -build tool
-updateimg          -build update image
-unpackimg          -unpack update image
-factory            -build factory image
-all                -build uboot, kernel, rootfs, recovery image
-allsave            -build all & firmware & save
-
-clean              -clean all
-clean uboot        -clean uboot
-clean kernel       -clean kernel
-clean driver       -clean driver
-clean rootfs       -clean rootfs
-clean sysdrv       -clean uboot/kernel/rootfs
-clean media        -clean rockchip media libraries
-clean app          -clean app
-clean recovery     -clean recovery
-
-firmware           -pack all the image we need to boot up system
-ota                -pack update_ota.tar
-save               -save images, patches, commands used to debug
-check              -check the environment of building
-info               -see the current board building information
-
-buildrootconfig    -config buildroot and save defconfig"
-kernelconfig       -config kernel and save defconfig"
+git clone https://gitee.com/LuckfoxTECH/luckfox-pico.git
 ```
-#### Select the referenced board configuration
+
+### 1.4 编译镜像
+
 ```shell
-./build.sh lunch
+luckfox@luckfox:~$ ./build.sh lunch
+You're building on Linux
+  Lunch menu...pick the Luckfox Pico hardware version:
+  选择 Luckfox Pico 硬件版本:
+                [0] RV1103_Luckfox_Pico
+                [1] RV1103_Luckfox_Pico_Mini_A
+                [2] RV1103_Luckfox_Pico_Mini_B
+                [3] RV1103_Luckfox_Pico_Plus
+                [4] RV1106_Luckfox_Pico_Pro_Max
+                [5] RV1106_Luckfox_Pico_Ultra
+                [6] RV1106_Luckfox_Pico_Ultra_W
+                [7] custom
+Which would you like? [0~7][default:0]: 3
+  Lunch menu...pick the boot medium:
+  选择启动媒介:
+                [0] SD_CARD
+                [1] SPI_NAND
+Which would you like? [0~1][default:0]: 1
+  Lunch menu...pick the system version:
+  选择系统版本:
+                [0] Buildroot(Support Rockchip official features)
+Which would you like? [0~1][default:0]: 0
+[build.sh:info] Lunching for Default BoardConfig_IPC/BoardConfig-SPI_NAND-Buildroot-RV1103_Luckfox_Pico_Plus-IPC.mk boards...
+[build.sh:info] Running build_select_board succeeded.
+
+luckfox@luckfox:~$  ./build.sh
 ```
-+ Output the corresponding Luckfox-pico hardware model. Enter the corresponding number to proceed to the storage media options (press Enter to select option [0] directly).
-  ```shell
-  You're building on Linux
-    Lunch menu...pick the Luckfox Pico hardware version:
-    选择 Luckfox Pico 硬件版本:
-                  [0] RV1103_Luckfox_Pico
-                  [1] RV1103_Luckfox_Pico_Mini_A
-                  [2] RV1103_Luckfox_Pico_Mini_B
-                  [3] RV1103_Luckfox_Pico_Plus
-                  [4] RV1106_Luckfox_Pico_Pro_Max
-                  [5] RV1106_Luckfox_Pico_Ultra
-                  [6] RV1106_Luckfox_Pico_Ultra_W
-                  [7] custom
-  Which would you like? [0~7][default:0]:
-  ```
-+ Output the supported storage media for the corresponding Luckfox-pico hardware model. Enter the corresponding number to proceed to the root filesystem options (press Enter to select option [0] directly).For example, Luckfox Pico Plus.
-  ```shell
-    Lunch menu...pick the boot medium:
-    选择启动媒介:
-                  [0] SD_CARD
-                  [1] SPI_NAND
 
-  Which would you like? [0~1][default:0]:
-  ```
-+ Output the supported root filesystem types for the corresponding Luckfox-pico hardware model. Enter the corresponding number to complete the configuration (press Enter to select option [0] directly).
-  ```shell
-    Lunch menu...pick the system version:
-    选择系统版本:
-                  [0] Buildroot(Support Rockchip official features)
-                  [1] Ubuntu(Support for the apt package management tool)
 
-  Which would you like? [0~1][default:0]:
-  ```
-+ If you need to use the old configuration method or a custom board support file, select the "[7]custom" option when configuring the Luckfox-pico hardware model.
-  ```shell
-  You're building on Linux
-    Lunch menu...pick the Luckfox Pico hardware version:
-    选择 Luckfox Pico 硬件版本:
-                  [0] RV1103_Luckfox_Pico
-                  [1] RV1103_Luckfox_Pico_Mini_A
-                  [2] RV1103_Luckfox_Pico_Mini_B
-                  [3] RV1103_Luckfox_Pico_Plus
-                  [4] RV1106_Luckfox_Pico_Pro_Max
-                  [5] RV1106_Luckfox_Pico_Ultra
-                  [6] RV1106_Luckfox_Pico_Ultra_W
-                  [7] custom
-  Which would you like? [0~7][default:0]: 7
-  ----------------------------------------------------------------
-  0. BoardConfig_IPC/BoardConfig-EMMC-Buildroot-RV1106_Luckfox_Pico_Ultra-IPC.mk
-                              boot medium(启动介质): EMMC
-                            system version(系统版本): Buildroot
-                          hardware version(硬件版本): RV1106_Luckfox_Pico_Ultra
-                                applicaton(应用场景): IPC
-  ----------------------------------------------------------------
 
-  ----------------------------------------------------------------
-  1. BoardConfig_IPC/BoardConfig-EMMC-Buildroot-RV1106_Luckfox_Pico_Ultra_W-IPC.mk
-                              boot medium(启动介质): EMMC
-                            system version(系统版本): Buildroot
-                          hardware version(硬件版本): RV1106_Luckfox_Pico_Ultra_W
-                                applicaton(应用场景): IPC
-  ----------------------------------------------------------------
+## 二、WIFI使用
 
-  ----------------------------------------------------------------
-  2. BoardConfig_IPC/BoardConfig-EMMC-Ubuntu-RV1106_Luckfox_Pico_Ultra-IPC.mk
-                              boot medium(启动介质): EMMC
-                            system version(系统版本): Ubuntu
-                          hardware version(硬件版本): RV1106_Luckfox_Pico_Ultra
-                                applicaton(应用场景): IPC
-  ----------------------------------------------------------------
+- 编译
 
-  ----------------------------------------------------------------
-  3. BoardConfig_IPC/BoardConfig-EMMC-Ubuntu-RV1106_Luckfox_Pico_Ultra_W-IPC.mk
-                              boot medium(启动介质): EMMC
-                            system version(系统版本): Ubuntu
-                          hardware version(硬件版本): RV1106_Luckfox_Pico_Ultra_W
-                                applicaton(应用场景): IPC
-  ----------------------------------------------------------------
-
-  ----------------------------------------------------------------
-  4. BoardConfig_IPC/BoardConfig-SD_CARD-Buildroot-RV1103_Luckfox_Pico-IPC.mk
-                              boot medium(启动介质): SD_CARD
-                            system version(系统版本): Buildroot
-                          hardware version(硬件版本): RV1103_Luckfox_Pico
-                                applicaton(应用场景): IPC
-  ----------------------------------------------------------------
-
-  ----------------------------------------------------------------
-  5. BoardConfig_IPC/BoardConfig-SD_CARD-Buildroot-RV1103_Luckfox_Pico_Mini_A-IPC.mk
-                              boot medium(启动介质): SD_CARD
-                            system version(系统版本): Buildroot
-                          hardware version(硬件版本): RV1103_Luckfox_Pico_Mini_A
-                                applicaton(应用场景): IPC
-  ----------------------------------------------------------------
-
-  ----------------------------------------------------------------
-  6. BoardConfig_IPC/BoardConfig-SD_CARD-Buildroot-RV1103_Luckfox_Pico_Mini_B-IPC.mk
-                              boot medium(启动介质): SD_CARD
-                            system version(系统版本): Buildroot
-                          hardware version(硬件版本): RV1103_Luckfox_Pico_Mini_B
-                                applicaton(应用场景): IPC
-  ----------------------------------------------------------------
-
-  ----------------------------------------------------------------
-  7. BoardConfig_IPC/BoardConfig-SD_CARD-Buildroot-RV1103_Luckfox_Pico_Plus-IPC.mk
-                              boot medium(启动介质): SD_CARD
-                            system version(系统版本): Buildroot
-                          hardware version(硬件版本): RV1103_Luckfox_Pico_Plus
-                                applicaton(应用场景): IPC
-  ----------------------------------------------------------------
-
-  ----------------------------------------------------------------
-  8. BoardConfig_IPC/BoardConfig-SD_CARD-Buildroot-RV1106_Luckfox_Pico_Pro_Max-IPC.mk
-                              boot medium(启动介质): SD_CARD
-                            system version(系统版本): Buildroot
-                          hardware version(硬件版本): RV1106_Luckfox_Pico_Pro_Max
-                                applicaton(应用场景): IPC
-  ----------------------------------------------------------------
-
-  ----------------------------------------------------------------
-  9. BoardConfig_IPC/BoardConfig-SD_CARD-Ubuntu-RV1103_Luckfox_Pico-IPC.mk
-                              boot medium(启动介质): SD_CARD
-                            system version(系统版本): Ubuntu
-                          hardware version(硬件版本): RV1103_Luckfox_Pico
-                                applicaton(应用场景): IPC
-  ----------------------------------------------------------------
-
-  ----------------------------------------------------------------
-  10. BoardConfig_IPC/BoardConfig-SD_CARD-Ubuntu-RV1103_Luckfox_Pico_Mini_A-IPC.mk
-                              boot medium(启动介质): SD_CARD
-                            system version(系统版本): Ubuntu
-                          hardware version(硬件版本): RV1103_Luckfox_Pico_Mini_A
-                                applicaton(应用场景): IPC
-  ----------------------------------------------------------------
-
-  ----------------------------------------------------------------
-  11. BoardConfig_IPC/BoardConfig-SD_CARD-Ubuntu-RV1103_Luckfox_Pico_Mini_B-IPC.mk
-                              boot medium(启动介质): SD_CARD
-                            system version(系统版本): Ubuntu
-                          hardware version(硬件版本): RV1103_Luckfox_Pico_Mini_B
-                                applicaton(应用场景): IPC
-  ----------------------------------------------------------------
-
-  ----------------------------------------------------------------
-  12. BoardConfig_IPC/BoardConfig-SD_CARD-Ubuntu-RV1103_Luckfox_Pico_Plus-IPC.mk
-                              boot medium(启动介质): SD_CARD
-                            system version(系统版本): Ubuntu
-                          hardware version(硬件版本): RV1103_Luckfox_Pico_Plus
-                                applicaton(应用场景): IPC
-  ----------------------------------------------------------------
-
-  ----------------------------------------------------------------
-  13. BoardConfig_IPC/BoardConfig-SD_CARD-Ubuntu-RV1106_Luckfox_Pico_Pro_Max-IPC.mk
-                              boot medium(启动介质): SD_CARD
-                            system version(系统版本): Ubuntu
-                          hardware version(硬件版本): RV1106_Luckfox_Pico_Pro_Max
-                                applicaton(应用场景): IPC
-  ----------------------------------------------------------------
-
-  ----------------------------------------------------------------
-  14. BoardConfig_IPC/BoardConfig-SPI_NAND-Buildroot-RV1103_Luckfox_Pico_Mini_B-IPC.mk
-                              boot medium(启动介质): SPI_NAND
-                            system version(系统版本): Buildroot
-                          hardware version(硬件版本): RV1103_Luckfox_Pico_Mini_B
-                                applicaton(应用场景): IPC
-  ----------------------------------------------------------------
-
-  ----------------------------------------------------------------
-  15. BoardConfig_IPC/BoardConfig-SPI_NAND-Buildroot-RV1103_Luckfox_Pico_Plus-IPC.mk
-                              boot medium(启动介质): SPI_NAND
-                            system version(系统版本): Buildroot
-                          hardware version(硬件版本): RV1103_Luckfox_Pico_Plus
-                                applicaton(应用场景): IPC
-  ----------------------------------------------------------------
-
-  ----------------------------------------------------------------
-  16. BoardConfig_IPC/BoardConfig-SPI_NAND-Buildroot-RV1106_Luckfox_Pico_Pro_Max-IPC.mk
-                              boot medium(启动介质): SPI_NAND
-                            system version(系统版本): Buildroot
-                          hardware version(硬件版本): RV1106_Luckfox_Pico_Pro_Max
-                                applicaton(应用场景): IPC
-  ----------------------------------------------------------------
-
-  Which would you like? [default:0]:
-  ```
-  Enter the corresponding board support file number to complete the configuration.
-#### Set Buildroot System Default WIFI Configuration
-* Navigate to the board-level configuration directory
-    ```shell
-    cd {SDK_PATH}/project/cfg/BoardConfig_IPC/
-    ```
-* Open the corresponding board-level configuration file
-* Modify the parameters LF_WIFI_PASSWD and LF_WIFI_SSID
-    ```shell
-    export LF_WIFI_SSID="Your wifi ssid"
-    export LF_WIFI_PSK="Your wifi password"
-    ```
-#### One-click Automatic Compilation
 ```shell
-./build.sh lunch   # Select the reference board configuration
-./build.sh         # One-click automatic compilation
+./build.sh
 ```
-* Compile busybox/buildroot    
-    ```
-    ./build.sh lunch   # Select the reference board
-    ./build.sh         # One-click automatic compilation  
-    ``` 
-* Compile Ubuntu
-    ```
-    sudo ./build.sh lunch   # Select the reference board
-    sudo ./build.sh         # One-click automatic compilation  
-    ```
-    * Note that when compiling Ubuntu, make sure to use sudo, otherwise it may cause file system errors
-    * The following text will not distinguish between the two sets of instructions, please choose accordingly based on the situation
-#### Build U-Boot
-```shell
-./build.sh clean uboot
-./build.sh uboot
-```
-The path of the generated files:
-```
-output/image/MiniLoaderAll.bin
-output/image/uboot.img
-```
-#### Build kernel
-```shell
-./build.sh clean kernel
-./build.sh kernel
-```
-The path of the generated files:
-```
-output/image/boot.img
-```
-#### Build rootfs
-```shell
-./build.sh clean rootfs
-./build.sh rootfs
-```
-* Note : After compilation, use the command ./build.sh firmware to repackage.
 
-#### Build media
+- 启动WIFI
+  
 ```shell
-./build.sh clean media
-./build.sh media
-```
-The path of the generated files:
-```
-output/out/media_out
-```
-* Note : After compilation, use the command ./build.sh firmware to repackage.
-#### Build Reference Applications
-```shell
-./build.sh clean app
-./build.sh app
-```
-* Note 1: The app depends on media.
-* Note 2: After compilation, use the command ./build.sh firmware to repackage.
-#### Firmware Packaging
-```shell
-./build.sh firmware
-```
-The path of the generated files:
-```
-output/image
-```
-#### Kernel Config
-```shell
-./build.sh kernelconfig
-```
-Open the menuconfig interface for the kernel.
-#### Buildroot Config
-```shell
-./build.sh buildrootconfig
-```
-Open the menuconfig interface for buildroot.
-* Note: This is only applicable when selecting buildroot as the root file system.
+cd /lib/firmware/rtlwifi/
 
-## Notices
-When copying the source code package under Windows, the executable file under Linux may become a non-executable file, or the soft link fails and cannot be compiled and used.
-Therefore, please be careful not to copy the source code package under Windows.
+chmod 777 install_wifi.sh
+
+./install_wifi.sh
+
+
+```
+
+- 如果需要下次开机WIFI自动启动，但是可能会拖慢开机速度
+
+```shell
+echo "./lib/firmware/rtlwifi/install_wifi.sh" >> /etc/init.d/rcS
+
+```
+
+- WIFI支持同一网络下SSH登录
+
+- 修改网络
+
+如果需要修改网络，可以直接将<SDK目录>/external/lib/firmware/rtlwifi/install_wifi.sh脚本中的SSID和PSK分别修改为网络的名称和密码。
+
+## 三、蓝牙使用
+
+
+- 编译
+  
+```shell
+./build.sh
+```
+
+- 启动蓝牙并打开广播模式
+  
+```shell
+cd /lib/firmware/rtlbt/
+
+chmod 777 install_bluetooth.sh
+
+./install_bluetooth.sh
+```
+
+- 利用手机可以搜索到当前正在广播的设备
